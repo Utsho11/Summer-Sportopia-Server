@@ -28,12 +28,17 @@ try {
     // Connect the client to the server	(optional starting in v4.7)
 
 const classCollections = client.db("summer-camp").collection("classes");
+const instructorCollections = client.db("summer-camp").collection("instructors");
 
 app.get('/class', async (req, res) => {
     const result = await classCollections.find().toArray();
     res.send(result);
     })
-
+    
+app.get('/instructor', async (req, res) => {
+    const result = await instructorCollections.find().toArray();
+    res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
