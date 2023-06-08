@@ -10,7 +10,6 @@ require('dotenv').config()
 app.use(cors());
 app.use(express.json());
 
-
 const uri = `mongodb+srv://${process.env.USER_DB}:${process.env.PASS_DB}@cluster0.2g6iibi.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -23,10 +22,17 @@ const client = new MongoClient(uri, {
 });
 
 
+
 async function run() {
-  try {
+try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+
+const classCollections = client.db("summer-camp").collection("classes");
+
+app.get('/class', async (req, res) => {
+    const result = await classCollections.find().toArray();
+    res.send(result);
+    })
 
 
     // Send a ping to confirm a successful connection
@@ -41,8 +47,9 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-res.send('SERVER IS RUNNING');
+res.send('Summer Camp IS RUNNING');
 })
+
 
 app.listen(port, () => {
 console.log(`SERVER IS RUNNING ON: ${port}`);
