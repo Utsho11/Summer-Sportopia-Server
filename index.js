@@ -30,8 +30,13 @@ try {
 const classCollections = client.db("summer-camp").collection("classes");
 const instructorCollections = client.db("summer-camp").collection("instructors");
 
-app.get('/class', async (req, res) => {
+app.get('/classes',async(req,res) =>{
     const result = await classCollections.find().toArray();
+    res.send(result);
+})
+
+app.get('/popularClasses', async (req, res) => {
+    const result = await classCollections.find().sort({number_of_student: -1}).limit(6).toArray();
     res.send(result);
     })
     
