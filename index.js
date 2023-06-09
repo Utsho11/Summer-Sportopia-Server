@@ -57,6 +57,28 @@ app.post('/jwt', (req, res) => {
   res.send({ token });
 })
 
+const verifyInstructor = async (req, res, next) => {
+  const email = req.decoded.email;
+  const query = { email: email };
+  const user = await userCollections.findOne(query);
+
+  if (user?.role !== 'instructor') {
+    return res.status(403).send({ error: true, message: 'forbidden message' });
+  }
+  next();
+}
+
+const verifyAdmin = async (req, res, next) => {
+  const email = req.decoded.email;
+  const query = { email: email };
+  const user = await userCollections.findOne(query);
+
+  if (user?.role !== 'admin') {
+    return res.status(403).send({ error: true, message: 'forbidden message' });
+  }
+  next();
+}
+
 // user
 app.post('/users', async(req,res) =>{
   const user = req.body;
