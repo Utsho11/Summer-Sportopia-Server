@@ -29,6 +29,19 @@ try {
 
 const classCollections = client.db("summer-camp").collection("classes");
 const instructorCollections = client.db("summer-camp").collection("instructors");
+const userCollections = client.db("summer-camp").collection("user");
+
+// user
+app.post('/users', async(req,res) =>{
+  const user = req.body;
+  const query = { email: user.email };
+  const existingUser = await userCollections.findOne(query);
+  if (existingUser) {
+    return res.send({ message: "user already exist" })
+  }
+  const result = await userCollections.insertOne(user);
+  res.send(result);
+})
 
 app.get('/classes',async(req,res) =>{
     const result = await classCollections.find().toArray();
