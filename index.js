@@ -75,6 +75,32 @@ try {
     res.send(result);
   })
 
+  app.get('/users/admin/:email', verifyJWT, async (req, res) => {
+    const email = req.params.email;
+
+    if (req.decoded.email !== email) {
+      res.send({ admin: false })
+    }
+
+    const query = { email: email };
+    const user = await userCollections.findOne(query);
+    const result = { admin: user?.role === 'admin' };
+    res.send(result);
+  })
+  
+  app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
+    const email = req.params.email;
+
+    if (req.decoded.email !== email) {
+      res.send({ admin: false })
+    }
+
+    const query = { email: email };
+    const user = await userCollections.findOne(query);
+    const result = { admin: user?.role === 'instructor' };
+    res.send(result);
+  })
+
   // update user
   app.put('/users/admin/:id', async (req, res) => {
     const id = req.params.id;
@@ -105,7 +131,7 @@ try {
     }
 
     const decodedEmail = req.decoded.email;
-    
+
     if (email !== decodedEmail) {
       return res.status(403).send({ error: true, message: 'forbidden access' })
     }
