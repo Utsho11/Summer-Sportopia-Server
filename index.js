@@ -13,15 +13,20 @@ app.use(express.json());
 
 const verifyJWT = (req, res, next) => {
 const authorization = req.headers.authorization;
+console.log(authorization);
+
 if (!authorization) {
   return res.status(401).send({ error: true, message: 'unauthorized access' })
 }
+
 const token = authorization.split(' ')[1];
 
 jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
   if (err) {
+    console.log(err.message);
     return res.status(401).send({ error: true, message: 'unauthorized access' })
   }
+  console.log(decoded);
   req.decoded = decoded;
   next();
 })
@@ -92,12 +97,12 @@ try {
     const email = req.params.email;
 
     if (req.decoded.email !== email) {
-      res.send({ admin: false })
+      res.send({ instructor: false })
     }
 
     const query = { email: email };
     const user = await userCollections.findOne(query);
-    const result = { admin: user?.role === 'instructor' };
+    const result = { instructor: user?.role === 'instructor' };
     res.send(result);
   })
 
@@ -117,12 +122,73 @@ try {
     const result = await userCollections.updateOne(filter, updateDoc);
     res.send(result)
   })
+  app.put('/classes/agree/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = { $set: { status: "Agreed" } };
+    const result = await classCollections.updateOne(filter, updateDoc);
+    res.send(result)
+  })
+
+  app.put('/classes/deny/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = { $set: { status: "Deny" } };
+    const result = await classCollections.updateOne(filter, updateDoc);
+    res.send(result)
+  })
+
+  app.put('/classes/feedback/:id', async(req, res) => {
+    const id = req.params.id;
+    const updatedFeedback = req.body;
+    const filter = {_id: new ObjectId(id)};
+    const options = {upsert: true};
+    const updatedDoc = {
+      $set:{
+        feedback: updatedFeedback
+      }
+    }
+    const result = await classCollections.updateOne(filter,updatedDoc,options);
+    res.send(result);     
+  })
 
   app.get('/classes', async (req, res) => {
+  
     const result = await classCollections.find().toArray();
     res.send(result);
   })
 
+  app.get('/agreedClasses', async (req, res) => {
+    const query = {status: "Agreed"}
+    const result = await classCollections.find(query).toArray();
+    res.send(result);
+  })
+
+  app.post('/classes', verifyJWT, async (req, res) => {
+    const newItem = req.body;
+    const result = await classCollections.insertOne(newItem);
+    res.send(result);
+  })
+
+
+  app.get('/myClasses', verifyJWT, async (req, res) => {
+    const email = req.query.email;
+  
+    if (!email) {
+      res.send([])
+    }
+
+    const decodedEmail = req.decoded.email;
+   
+
+    if (email !== decodedEmail) {
+      return res.status(403).send({ error: true, message: 'forbidden access' })
+    }
+
+    const query = { email: email };
+    const result = await classCollections.find(query).toArray();
+    res.send(result);
+  })
 
   app.get('/selectClasses', verifyJWT, async (req, res) => {
     const email = req.query.email;
@@ -130,7 +196,9 @@ try {
       res.send([])
     }
 
+
     const decodedEmail = req.decoded.email;
+   
 
     if (email !== decodedEmail) {
       return res.status(403).send({ error: true, message: 'forbidden access' })
@@ -141,18 +209,20 @@ try {
     res.send(result);
   })
 
+
+
   app.post('/selectClasses', async (req, res) => {
     const item = req.body;
-    console.log(item);
     const result = await selectedClassesCollections.insertOne(item);
     res.send(result);
   })
 
-  app.delete('/selectClasses/:id', async (req, res) => {
+  app.delete('/selectedClass/delete/:id', async (req, res) => {
     const id = req.params.id;
-    const query = { _id: new ObjectId(id) }
+    const query = { _id: id }
     const result = await selectedClassesCollections.deleteOne(query);
-    res.send(result);
+    console.log(result);
+    res.send(result)
   })
 
   app.get('/popularClasses', async (req, res) => {
